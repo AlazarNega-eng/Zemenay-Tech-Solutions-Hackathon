@@ -6,6 +6,25 @@ import { SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  // Prevent hydration mismatch by only rendering after mount
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <button
+        className="p-2 rounded-md hover:bg-accent transition-colors cursor-pointer"
+        aria-label="Toggle theme"
+        disabled
+      >
+        <div className="h-6 w-6" />
+      </button>
+    )
+  }
 
   return (
     <button

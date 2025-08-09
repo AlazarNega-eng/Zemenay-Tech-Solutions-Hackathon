@@ -40,23 +40,20 @@ class PostResource extends Resource
                             ->maxLength(255)
                             ->placeholder('Enter the author name'),
 
-                        Forms\Components\RichEditor::make('content')
+                        Forms\Components\FileUpload::make('image')
+                            ->image()
+                            ->imageEditor()
+                            ->imageCropAspectRatio('16:9')
+                            ->imageResizeTargetWidth('1920')
+                            ->imageResizeTargetHeight('1080')
+                            ->directory('posts')
+                            ->visibility('public')
+                            ->columnSpanFull(),
+
+                        Forms\Components\Textarea::make('content')
                             ->required()
                             ->columnSpanFull()
-                            ->toolbarButtons([
-                                'bold',
-                                'italic',
-                                'underline',
-                                'strike',
-                                'link',
-                                'bulletList',
-                                'orderedList',
-                                'h2',
-                                'h3',
-                                'h4',
-                                'blockquote',
-                                'codeBlock',
-                            ])
+                            ->rows(10)
                             ->placeholder('Write your blog post content here...'),
                     ])
                     ->columns(2),
@@ -67,30 +64,26 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('Featured Image')
+                    ->circular()
+                    ->size(50)
+                    ->defaultImageUrl(asset('images/default-post.svg')),
+
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->sortable()
-                    ->limit(50)
+                    ->limit(40)
                     ->tooltip(fn (Post $record): string => $record->title),
 
                 Tables\Columns\TextColumn::make('author')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('content')
-                    ->limit(100)
-                    ->html()
-                    ->tooltip(fn (Post $record): string => strip_tags($record->content)),
-
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime('M j, Y g:i A')
+                    ->formatStateUsing(fn ($state) => $state ? $state->format('M j, Y g:i A') : '')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime('M j, Y g:i A')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
             ])
             ->filters([
                 Tables\Filters\Filter::make('created_at')
@@ -120,7 +113,8 @@ class PostResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->paginated([10, 25, 50]);
     }
 
     public static function getRelations(): array

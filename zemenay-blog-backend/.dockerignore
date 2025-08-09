@@ -1,0 +1,27 @@
+# zemenay-blog-backend/.dockerignore
+.git
+.gitignore
+.env
+.env.backup
+.env.example
+README.md
+CHANGELOG.md
+FILAMENT_ADMIN.md
+node_modules
+vendor
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+tests
+.github
+.styleci.yml
+.gitattributes
+.editorconfig
+phpunit.xml
+vite.config.js
+package.json
+package-lock.json
+postgres
+create_posts_table.sql 

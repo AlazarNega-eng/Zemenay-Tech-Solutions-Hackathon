@@ -1,0 +1,48 @@
+services:
+  # Laravel Backend Service - Using custom PHP Dockerfile
+  backend:
+    build: ./zemenay-blog-backend
+    container_name: zemenay-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./zemenay-blog-backend:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    working_dir: /var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=base64:BYtHTrpNErQuPFlMADffXKbCe1HW05cErOCOhzeqIYs=
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/var/www/html/database/database.sqlite
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
+      - LOG_LEVEL=debug
+    networks:
+      - zemenay-net
+
+  # Next.js Frontend Service
+  frontend:
+    image: node:18-alpine
+    container_name: zemenay-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./zemenay-blog-frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["sh", "-c", "npm install && npm run dev"]
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - zemenay-net
+
+networks:
+  zemenay-net:
+    driver: bridge 

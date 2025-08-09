@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
@@ -14,8 +15,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        // Fetch all posts from the database
-        $posts = Post::latest()->get();
+        // Remove problematic caching for now - return posts directly
+        $posts = Post::latest()->paginate(10);
         return response()->json($posts);
     }
 
@@ -38,6 +39,9 @@ class PostController extends Controller
         // Create and save the new post
         $post = Post::create($request->all());
 
+        // Clear cache after creating new post
+        Cache::forget('posts.all');
+
         return response()->json($post, 201); // 201 Created
     }
 
@@ -46,7 +50,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        // Return the specific post (route-model binding does the lookup for us)
+        // Remove caching for now - return post directly
         return response()->json($post);
     }
 
@@ -69,6 +73,10 @@ class PostController extends Controller
         // Update the post with the new data
         $post->update($request->all());
 
+        // Clear related caches
+        Cache::forget('posts.all');
+        Cache::forget("post.{$post->id}");
+
         return response()->json($post);
     }
 
@@ -79,6 +87,10 @@ class PostController extends Controller
     {
         // Delete the post
         $post->delete();
+
+        // Clear related caches
+        Cache::forget('posts.all');
+        Cache::forget("post.{$post->id}");
 
         return response()->json(null, 204); // 204 No Content
     }

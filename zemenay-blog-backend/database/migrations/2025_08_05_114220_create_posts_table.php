@@ -15,8 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
-            $table->string('author')->nullable(); // Or you can use a foreign key to a users table
-            $table->timestamps(); // Creates `created_at` and `updated_at` columns
+            $table->string('author')->nullable();
+            $table->timestamps();
+
+            // Add indexes for better performance
+            $table->index('title');
+            $table->index('author');
+            $table->index('created_at');
         });
     }
 

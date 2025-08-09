@@ -18,6 +18,7 @@ class Post extends Model
         'title',
         'content',
         'author',
+        'image',
     ];
 
     /**
@@ -29,4 +30,46 @@ class Post extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * The attributes that should be indexed.
+     *
+     * @var array<int, string>
+     */
+    protected $indexed = [
+        'title',
+        'author',
+        'created_at',
+    ];
+
+    /**
+     * Get the image URL for the post.
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return asset('images/default-post.svg');
+    }
+
+    /**
+     * Scope a query to only include recent posts.
+     */
+    public function scopeRecent($query, $limit = 10)
+    {
+        return $query->latest()->limit($limit);
+    }
+
+    /**
+     * Scope a query to search posts by title or content.
+     */
+    public function scopeSearch($query, $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('content', 'like', "%{$search}%")
+              ->orWhere('author', 'like', "%{$search}%");
+        });
+    }
 }

@@ -1,32 +1,138 @@
-// app/posts/[id]/page.tsx
+'use client';
 
 import { Header } from "../../components/header";
 import { Post } from "../../lib/definitions";
-import { notFound } from "next/navigation";
+import { useState, useEffect } from "react";
 import { format } from 'date-fns'; // We'll use this for nice date formatting
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
-// Function to fetch a single post by its ID
-async function getPost(id: string): Promise<Post | null> {
-  const res = await fetch(`http://127.0.0.1:8000/api/posts/${id}`, { cache: 'no-store' });
+export default function PostPage() {
+  const params = useParams();
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // The API will return a 404 if not found, so we check for that
-  if (!res.ok) {
-    return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const id = params.id as string;
+        console.log(`Fetching post with ID: ${id}`);
+        
+        // For client-side requests, use the environment variable or fallback to localhost
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        const url = `${apiUrl}/posts/${id}`;
+        
+        console.log(`Fetching from: ${url}`);
+        
+        const res = await fetch(url, { 
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        });
+
+        console.log(`Response status: ${res.status}`);
+
+        // The API will return a 404 if not found, so we check for that
+        if (!res.ok) {
+          console.log(`Post not found: ${res.status}`);
+          setError('Post not found');
+          return;
+        }
+
+        const data = await res.json();
+        console.log('Post data:', data);
+        setPost(data);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch post');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id && mounted) {
+      fetchPost();
+    }
+  }, [params.id, mounted]);
+
+  // Helper function to format date consistently
+  const formatDate = (dateString: string) => {
+    if (!mounted) return ''; // Return empty string during SSR to prevent hydration mismatch
+    try {
+      return format(new Date(dateString), 'MMMM dd, yyyy');
+    } catch {
+      return '';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div>
+        <Header />
+        <main className="container mx-auto px-4 py-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center text-muted-foreground mt-20">
+              <p>Loading post...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
-  return res.json();
-}
+  if (error) {
+    return (
+      <div>
+        <Header />
+        <main className="container mx-auto px-4 py-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-8">
+              <Link 
+                href="/" 
+                className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                ← Back to Posts
+              </Link>
+            </div>
+            <div className="text-center text-red-500 mt-20">
+              <p>Error: {error}</p>
+              <p className="mt-4">Please make sure the backend server is running on http://localhost:8000</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-
-// This is the page component itself
-// It receives `params` which contains the dynamic route segments, e.g., { id: '1' }
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const post = await getPost(params.id);
-
-  // If the post doesn't exist, show a 404 page
   if (!post) {
-    notFound();
+    return (
+      <div>
+        <Header />
+        <main className="container mx-auto px-4 py-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-8">
+              <Link 
+                href="/" 
+                className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                ← Back to Posts
+              </Link>
+            </div>
+            <div className="text-center text-muted-foreground mt-20">
+              <p>Post not found.</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -55,7 +161,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
             <span>•</span>
             {/* We will format the date nicely */}
             <time dateTime={post.created_at}>
-              {format(new Date(post.created_at), 'MMMM dd, yyyy')}
+              {formatDate(post.created_at)}
             </time>
           </div>
           
