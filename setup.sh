@@ -21,13 +21,19 @@ fi
 
 # Build and start containers
 echo "🔨 Building Docker containers..."
-docker-compose build
+if docker compose version >/dev/null 2>&1; then
+    DC="docker compose"
+else
+    DC="docker-compose"
+fi
+
+$DC build
 
 if [ $? -eq 0 ]; then
     echo "✅ Containers built successfully"
     
     echo "🚀 Starting services..."
-    docker-compose up -d
+    $DC up -d
     
     if [ $? -eq 0 ]; then
         echo "✅ Services started successfully!"
@@ -39,13 +45,13 @@ if [ $? -eq 0 ]; then
         echo ""
         echo "📝 Next steps:"
         echo "   1. Configure your database in zemenay-blog-backend/.env"
-        echo "   2. Run migrations: docker-compose exec backend php artisan migrate"
-        echo "   3. Create admin user: docker-compose exec backend php artisan tinker --execute=\"\\App\\Models\\User::create(['name' => 'Admin', 'email' => 'admin@zemenay.com', 'password' => bcrypt('password')])\""
+        echo "   2. Run migrations: $DC exec backend php artisan migrate"
+        echo "   3. Create admin user: $DC exec backend php artisan tinker --execute=\"\\App\\Models\\User::create(['name' => 'Admin', 'email' => 'admin@zemenay.com', 'password' => bcrypt('password')])\""
         echo ""
         echo "🛠️  Useful commands:"
-        echo "   - View logs: docker-compose logs -f"
-        echo "   - Stop services: docker-compose down"
-        echo "   - Restart services: docker-compose restart"
+        echo "   - View logs: $DC logs -f"
+        echo "   - Stop services: $DC down"
+        echo "   - Restart services: $DC restart"
     else
         echo "❌ Failed to start services"
         exit 1

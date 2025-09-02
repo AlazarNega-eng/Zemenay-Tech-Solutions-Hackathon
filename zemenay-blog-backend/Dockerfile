@@ -26,13 +26,18 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
+# Install PHP extensions (including SQLite and GD)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-configure intl \
     && docker-php-ext-install \
     bcmath \
     intl \
-    fileinfo
+    fileinfo \
+    gd \
+    pdo \
+    pdo_sqlite \
+    mbstring \
+    zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

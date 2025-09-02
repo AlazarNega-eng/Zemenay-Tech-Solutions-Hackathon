@@ -1,11 +1,17 @@
 #!/bin/bash
 
+if docker compose version >/dev/null 2>&1; then
+    DC="docker compose"
+else
+    DC="docker-compose"
+fi
+
 echo "Stopping and removing existing containers..."
-docker-compose down
+$DC down
 
 echo
 echo "Building and starting containers..."
-docker-compose up --build -d
+$DC up --build -d
 
 echo
 echo "Waiting for services to start..."
@@ -13,7 +19,7 @@ sleep 15
 
 echo
 echo "Checking container status..."
-docker-compose ps
+$DC ps
 
 echo
 echo "Testing backend connectivity..."
@@ -34,4 +40,4 @@ read
 
 echo
 echo "Showing logs (press Ctrl+C to exit)..."
-docker-compose logs -f
+$DC logs -f

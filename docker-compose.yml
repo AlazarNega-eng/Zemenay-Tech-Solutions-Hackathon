@@ -26,7 +26,7 @@ services:
 
   # Next.js Frontend Service
   frontend:
-    image: node:18-alpine
+    build: ./zemenay-blog-frontend
     container_name: zemenay-frontend
     ports:
       - "3000:3000"
